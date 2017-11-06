@@ -1,7 +1,5 @@
 Function.prototype.inherits = function (parent) {
-  const Surrogate = function () {};
-  Surrogate.prototype = parent.prototype;
-  this.prototype = new Surrogate();
+  this.prototype = Object.create(parent.prototype);
   this.prototype.constructor = this;
 };
 
@@ -28,3 +26,6 @@ const ship = new Ship();
 console.log(mo.type);
 console.log(ast.type);
 console.log(ship.type);
+console.log(Asteroid.prototype);
+console.log(Ship.prototype);
+console.log(MovingObject.prototype);
