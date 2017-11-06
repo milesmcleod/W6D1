@@ -1,0 +1,59 @@
+/* PHASE 8: Thumbs */
+
+.profile-friends {
+
+}
+
+.profile-friends li {
+  height: 58px;
+  width: 58px;
+  float:left;
+  border: 1px solid black;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.profile-friends li:nth-child(3n-1){
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+
+.thumb:before {
+  content: "";
+  display:none;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: -7px;
+  border-top: 5px solid black;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+}
+
+
+.thumb:after {
+  color:white;
+  content: attr(title);
+  cursor: pointer;
+  display:none;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  background: black;
+  padding: 5px 10px;
+  bottom: 65px;
+  font-size: 12px;
+  border-radius: 5px;
+}
+
+.thumb:hover:before {
+  display: block;
+}
+
+.thumb:hover:after {
+  display: block;
+  cursor: pointer;
+
+}
