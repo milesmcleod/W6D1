@@ -67,7 +67,7 @@
 /* 0 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const GameView = __webpack_require__(5);
+const GameView = __webpack_require__(1);
 
 window.addEventListener("DOMContentLoaded", function() {
   let canvas = document.getElementById("game-canvas");
@@ -81,7 +81,28 @@ window.addEventListener("DOMContentLoaded", function() {
 /* 1 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const Asteroid = __webpack_require__(2);
+const Game = __webpack_require__(2);
+
+const GameView = function GameView(ctx) {
+  this.game = new Game();
+  this.ctx = ctx;
+};
+
+GameView.prototype.start = function(ctx) {
+  setInterval( () => {
+    this.game.step();
+    this.game.draw(ctx);
+  }, 20);
+};
+
+module.exports = GameView;
+
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+const Asteroid = __webpack_require__(3);
 
 const Game = function () {
   this.asteroids = [];
@@ -94,7 +115,7 @@ Game.NUM_ASTEROIDS = 20;
 
 Game.prototype.addAsteroids = function () {
   for(let i = 0; i < Game.NUM_ASTEROIDS; i++) {
-    let ast = new Asteroid ({ pos: this.randomPosition() });
+    let ast = new Asteroid ({ pos: this.randomPosition(), game: this });
     this.asteroids.push(ast);
   }
 };
@@ -118,19 +139,40 @@ Game.prototype.moveObjects = function () {
   });
 };
 
-let g = new Game ();
+Game.prototype.wrap = function(pos) {
+  pos[0] = ((pos[0] + Game.DIM_X) % Game.DIM_X);
+  pos[1] = ((pos[1] + Game.DIM_Y) % Game.DIM_Y);
+};
 
-console.log(g);
+Game.prototype.checkCollisions = function () {
+  for(let i = 0; i < this.asteroids.length - 1; i++) {
+    for(let j = i + 1; j < this.asteroids.length; j++) {
+      if (this.asteroids[i].isCollidedWith(this.asteroids[j])) {
+        this.asteroids[i].collideWith(this.asteroids[j]);
+      }
+    }
+  }
+};
+
+Game.prototype.step = function () {
+  this.moveObjects();
+  this.checkCollisions();
+};
+
+Game.prototype.remove = function (asteroid) {
+  let index = this.asteroids.indexOf(asteroid);
+  this.asteroids.splice(index, 1);
+};
 
 module.exports = Game;
 
 
 /***/ }),
-/* 2 */
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const Util = __webpack_require__(3);
-const MovingObject = __webpack_require__(4);
+const Util = __webpack_require__(4);
+const MovingObject = __webpack_require__(5);
 
 const Asteroid = function Asteroid(options) {
   options.color = Asteroid.COLOR;
@@ -148,7 +190,7 @@ module.exports = Asteroid;
 
 
 /***/ }),
-/* 3 */
+/* 4 */
 /***/ (function(module, exports) {
 
 const Util = {
@@ -163,6 +205,10 @@ const Util = {
 // Scale the length of a vector by the given amount.
   scale (vec, m) {
     return [vec[0] * m, vec[1] * m];
+  },
+  distance (pos, pos2) {
+    // Dist([x_1, y_1], [x_2, y_2]) = sqrt((x_1 - x_2) ** 2 + (y_1 - y_2) ** 2)
+    return Math.sqrt(Math.pow((pos[0] - pos2[0]), 2) + Math.pow((pos[1] - pos2[1]), 2));
   }
 };
 
@@ -170,14 +216,17 @@ module.exports = Util;
 
 
 /***/ }),
-/* 4 */
-/***/ (function(module, exports) {
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+const Util = __webpack_require__(4);
 
 const MovingObject = function MovingObject(options) {
   this.pos = options.pos;
   this.vel = options.vel;
   this.radius = options.radius;
   this.color = options.color;
+  this.game = options.game;
 };
 
 MovingObject.prototype.draw = function draw(ctx) {
@@ -199,30 +248,25 @@ MovingObject.prototype.draw = function draw(ctx) {
 MovingObject.prototype.move = function move() {
   this.pos[0] += this.vel[0];
   this.pos[1] += this.vel[1];
+  this.game.wrap(this.pos);
 };
+
+MovingObject.prototype.isCollidedWith = function isCollidedWith(otherObject) {
+  let totalRadius = this.radius + otherObject.radius;
+  if (Util.distance(this.pos, otherObject.pos) <= totalRadius) {
+    return true;
+  } else {
+    return false;
+  }
+};
+
+MovingObject.prototype.collideWith = function (otherObject) {
+  this.game.remove(otherObject);
+  this.game.remove(this);
+};
+
 
 module.exports = MovingObject;
-
-
-/***/ }),
-/* 5 */
-/***/ (function(module, exports, __webpack_require__) {
-
-const Game = __webpack_require__(1);
-
-const GameView = function GameView(ctx) {
-  this.game = new Game();
-  this.ctx = ctx;
-};
-
-GameView.prototype.start = function(ctx) {
-  setInterval( () => {
-    this.game.moveObjects();
-    this.game.draw(ctx);
-  }, 20);
-};
-
-module.exports = GameView;
 
 
 /***/ })
